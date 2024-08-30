@@ -3,7 +3,6 @@ package ru.practicum.shareit.user.repository;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mappers.UserRowMapper;
 import ru.practicum.shareit.user.model.User;
 
@@ -17,19 +16,19 @@ public class InMemoryUserStorage {
     private final Map<Long, User> users = new HashMap<Long, User>();
     private Long countId = 0L;
 
-    public UserDto addUser(User user) {
+    public User addUser(User user) {
         validateUser(user);
         user.setId(getCountId());
         users.put(user.getId(), user);
-        return userRowMapper.toUserDto(users.get(user.getId()));
+        return users.get(user.getId());
     }
 
-    public UserDto getUser(Long id) {
+    public User getUser(Long id) {
         User user = users.get(id);
         if (user == null) {
             throw new NotFoundException("Пользователь с id: " + id + " не найден");
         }
-        return userRowMapper.toUserDto(users.get(id));
+        return users.get(id);
     }
 
     public void deleteUser(Long id) {
@@ -37,7 +36,7 @@ public class InMemoryUserStorage {
         users.remove(id);
     }
 
-    public UserDto updateUser(Long id, User user) {
+    public User updateUser(Long id, User user) {
         getUser(id);
         user.setId(id);
         if (user.getName() == null) {
@@ -49,7 +48,7 @@ public class InMemoryUserStorage {
             validateUser(user);
         }
         users.put(id, user);
-        return userRowMapper.toUserDto(users.get(id));
+        return users.get(id);
     }
 
     public Long getCountId() {
