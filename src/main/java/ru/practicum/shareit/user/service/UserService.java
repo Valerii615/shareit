@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user.service;
 
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.InMemoryUserStorage;
 
@@ -12,11 +13,11 @@ public class UserService {
         this.inMemoryUserStorage = inMemoryUserStorage;
     }
 
-    public User addUser(User user) {
-        return inMemoryUserStorage.addUser(user);
+    public UserDto addUser(UserDto userDto) {
+        return inMemoryUserStorage.addUser(userDto);
     }
 
-    public User getUser(Long id) {
+    public UserDto getUser(Long id) {
         return inMemoryUserStorage.getUser(id);
     }
 
@@ -24,7 +25,7 @@ public class UserService {
         inMemoryUserStorage.deleteUser(id);
     }
 
-    public User updateUser(Long id, User user) {
-        return inMemoryUserStorage.updateUser(id, user);
+    public UserDto updateUser(Long id, UserDto userDto) {
+        return inMemoryUserStorage.updateUser(id, userDto);
     }
 }

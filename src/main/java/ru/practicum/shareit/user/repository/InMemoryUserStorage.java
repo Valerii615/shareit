@@ -3,6 +3,7 @@ package ru.practicum.shareit.user.repository;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mappers.UserRowMapper;
 import ru.practicum.shareit.user.model.User;
 
@@ -16,19 +17,23 @@ public class InMemoryUserStorage {
     private final Map<Long, User> users = new HashMap<Long, User>();
     private Long countId = 0L;
 
-    public User addUser(User user) {
-        validateUser(user);
-        user.setId(getCountId());
+    public UserDto addUser(UserDto userDto) {
+        validateUserEmail(userDto.getEmail());
+        User user = User.builder()
+                .id(getCountId())
+                .name(userDto.getName())
+                .email(userDto.getEmail())
+                .build();
         users.put(user.getId(), user);
-        return users.get(user.getId());
+        return userRowMapper.toUserDto(users.get(user.getId()));
     }
 
-    public User getUser(Long id) {
+    public UserDto getUser(Long id) {
         User user = users.get(id);
         if (user == null) {
             throw new NotFoundException("Пользователь с id: " + id + " не найден");
         }
-        return users.get(id);
+        return userRowMapper.toUserDto(user);
     }
 
     public void deleteUser(Long id) {
@@ -36,29 +41,33 @@ public class InMemoryUserStorage {
         users.remove(id);
     }
 
-    public User updateUser(Long id, User user) {
+    public UserDto updateUser(Long id, UserDto userDto) {
         getUser(id);
+        User user = new User();
         user.setId(id);
-        if (user.getName() == null) {
+        if (userDto.getName() == null) {
             user.setName(users.get(id).getName());
+        } else {
+            user.setName(userDto.getName());
         }
-        if (user.getEmail() == null) {
+        if (userDto.getEmail() == null) {
             user.setEmail(users.get(id).getEmail());
         } else {
-            validateUser(user);
+            validateUserEmail(userDto.getEmail());
+            user.setEmail(userDto.getEmail());
         }
         users.put(id, user);
-        return users.get(id);
+        return userRowMapper.toUserDto(users.get(id));
     }
 
     public Long getCountId() {
         return ++countId;
     }
 
-    public void validateUser(User user) {
+    public void validateUserEmail(String email) {
         for (User userOfMap : users.values()) {
-            if (user.getEmail().equals(userOfMap.getEmail())) {
-                throw new ConflictException("Пользователь с таким email: " + user.getEmail() + " уже существует ");
+            if (email.equals(userOfMap.getEmail())) {
+                throw new ConflictException("Пользователь с таким email: " + email + " уже существует ");
             }
         }
     }
