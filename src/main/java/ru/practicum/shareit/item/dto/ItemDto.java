@@ -16,8 +16,8 @@ public class ItemDto {
     private Long id;
     private String name;
     private String description;
-    private String available; // — статус о том, доступна или нет вещь для аренды;
+    private Boolean available; // — статус о том, доступна или нет вещь для аренды;
     private Long owner; // — владелец вещи;
-    private String request; /*  — если вещь была создана по запросу другого пользователя,
+    private Long request; /*  — если вещь была создана по запросу другого пользователя,
                                 то в этом поле будет храниться ссылка на соответствующий запрос.*/
 }
