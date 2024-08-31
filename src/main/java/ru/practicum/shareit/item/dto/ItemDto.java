@@ -7,9 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Data
 @Builder
 @NoArgsConstructor
@@ -21,7 +18,6 @@ public class ItemDto {
     @NotBlank
     private String description;
     @NotNull
-    private Boolean available; // — статус о том, доступна или нет вещь для аренды;
-    private Long request; /*  — если вещь была создана по запросу другого пользователя,
-                                то в этом поле будет храниться ссылка на соответствующий запрос.*/
+    private Boolean available;
+    private Long request;
 }

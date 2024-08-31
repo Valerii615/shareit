@@ -40,5 +40,4 @@ public class ItemService {
     public List<ItemDto> searchItemsForRental(String text) {
         return inMemoryItemStorage.searchItemsForRental(text);
     }
-
 }

@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * TODO Sprint add-bookings.
- */
 @Data
 @Builder
 @NoArgsConstructor
@@ -19,6 +16,6 @@ public class Booking {
     private LocalDateTime start;
     private LocalDateTime end;
     private Long item;
-    private Long booker; // — пользователь, который осуществляет бронирование;
+    private Long booker;
     private Enum<Status> status;
 }

@@ -42,6 +42,4 @@ public class ItemController {
     public List<ItemDto> searchItemsForRental(@RequestParam(value = "text") String text) {
         return itemService.searchItemsForRental(text);
     }
-
-
 }
