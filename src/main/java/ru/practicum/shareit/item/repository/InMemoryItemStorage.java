@@ -23,7 +23,7 @@ public class InMemoryItemStorage {
     public ItemDto addItem(Long id, ItemDto itemDto) {
         log.info("Adding item {}", itemDto);
         Item item = Item.builder()
-                .id(getCountId())
+                .id(++countId)
                 .name(itemDto.getName())
                 .description(itemDto.getDescription())
                 .available(itemDto.getAvailable())
@@ -93,9 +93,5 @@ public class InMemoryItemStorage {
             log.info("Found {} items for rental", itemDtoList.size());
             return itemDtoList;
         }
-    }
-
-    public Long getCountId() {
-        return ++countId;
     }
 }
