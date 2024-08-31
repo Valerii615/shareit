@@ -14,7 +14,7 @@ import java.util.Map;
 public class InMemoryUserStorage {
     private final UserRowMapper userRowMapper = new UserRowMapper();
 
-    private final Map<Long, User> users = new HashMap<Long, User>();
+    private final Map<Long, User> users = new HashMap<>();
     private Long countId = 0L;
 
     public UserDto addUser(UserDto userDto) {
