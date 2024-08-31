@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.mappers.ItemRowMapper;
+import ru.practicum.shareit.item.mappers.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ import java.util.Map;
 @Slf4j
 @Repository
 public class InMemoryItemStorage {
-    private final ItemRowMapper itemRowMapper = new ItemRowMapper();
+    private final ItemMapper itemRowMapper = new ItemMapper();
 
     private final Map<Long, Item> items = new HashMap<>();
     private Long countId = 0L;
@@ -69,23 +69,30 @@ public class InMemoryItemStorage {
     public List<ItemDto> getAllItemsOfUser(Long userId) {
         log.info("Getting all items of user {}", userId);
         List<Item> itemList = new ArrayList<>(items.values());
-        itemList.removeIf(item -> !item.getOwner().equals(userId));
-        List<ItemDto> itemDtoList = new ArrayList<>(itemList.size());
-        itemList.forEach(item -> itemDtoList.add(itemRowMapper.toItemDto(item)));
+        List<ItemDto> itemDtoList = itemList.stream()
+                .filter(item -> item.getOwner().equals(userId))
+                .map(item -> itemRowMapper.toItemDto(items.get(item.getId())))
+                .toList();
         log.info("Found {} items of user", itemDtoList.size());
         return itemDtoList;
     }
 
     public List<ItemDto> searchItemsForRental(String text) {
         log.info("Searching for items for {}", text);
-        List<Item> itemList = new ArrayList<>(items.values());
-        itemList.removeIf(item -> !item.getAvailable());
-        itemList.removeIf(item -> !item.getName().toLowerCase().contains(text.toLowerCase()) ||
-                item.getDescription().toLowerCase().contains(text.toLowerCase()));
-        List<ItemDto> itemDtoList = new ArrayList<>(itemList.size());
-        itemList.forEach(item -> itemDtoList.add(itemRowMapper.toItemDto(item)));
-        log.info("Found {} items for rental", itemDtoList.size());
-        return itemDtoList;
+        if (text == null || text.isEmpty()) {
+            log.info("Found 0 items for rental");
+            return new ArrayList<>();
+        } else {
+            List<Item> itemList = new ArrayList<>(items.values());
+            List<ItemDto> itemDtoList = itemList.stream()
+                    .filter(Item::getAvailable)
+                    .filter(item -> item.getName().toLowerCase().contains(text.toLowerCase()) ||
+                            item.getDescription().toLowerCase().contains(text.toLowerCase()))
+                    .map(item -> itemRowMapper.toItemDto(items.get(item.getId())))
+                    .toList();
+            log.info("Found {} items for rental", itemDtoList.size());
+            return itemDtoList;
+        }
     }
 
     public Long getCountId() {
