@@ -43,16 +43,12 @@ public class InMemoryUserStorage {
 
     public UserDto updateUser(Long id, UserDto userDto) {
         getUser(id);
-        User user = new User();
+        User user = users.get(id);
         user.setId(id);
-        if (userDto.getName() == null) {
-            user.setName(users.get(id).getName());
-        } else {
+        if (userDto.getName() != null) {
             user.setName(userDto.getName());
         }
-        if (userDto.getEmail() == null) {
-            user.setEmail(users.get(id).getEmail());
-        } else {
+        if (userDto.getEmail() != null) {
             validateUserEmail(userDto.getEmail());
             user.setEmail(userDto.getEmail());
         }
