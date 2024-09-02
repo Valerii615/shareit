@@ -17,5 +17,5 @@ public class Booking {
     private LocalDateTime end;
     private Long item;
     private Long booker;
-    private Enum<Status> status;
+    private Status status;
 }
