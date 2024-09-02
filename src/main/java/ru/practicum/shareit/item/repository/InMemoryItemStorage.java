@@ -40,9 +40,15 @@ public class InMemoryItemStorage {
         log.info("Updating userId: {}, item: {}", userId, newItem);
         Item item = items.get(id);
         if (item.getOwner().equals(userId)) {
-            if (newItem.getName() != null) {item.setName(newItem.getName());}
-            if (newItem.getDescription() != null) {item.setDescription(newItem.getDescription());}
-            if (newItem.getAvailable() != null) {item.setAvailable(newItem.getAvailable());}
+            if (newItem.getName() != null) {
+                item.setName(newItem.getName());
+            }
+            if (newItem.getDescription() != null) {
+                item.setDescription(newItem.getDescription());
+            }
+            if (newItem.getAvailable() != null) {
+                item.setAvailable(newItem.getAvailable());
+            }
         }
         items.put(id, item);
         log.info("Updated item {}", item);
