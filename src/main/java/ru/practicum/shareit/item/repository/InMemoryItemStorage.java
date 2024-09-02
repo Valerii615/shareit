@@ -40,6 +40,7 @@ public class InMemoryItemStorage {
         log.info("Getting item {}", id);
         ItemDto itemDto = itemRowMapper.toItemDto(items.get(id));
         if (itemDto == null) {
+            log.error("NotFoundException: Вещь с id: {} не найдена", id);
             throw new NotFoundException("Вещь с id: " + id + " не найдена");
         }
         log.info("Found item {}", itemDto);

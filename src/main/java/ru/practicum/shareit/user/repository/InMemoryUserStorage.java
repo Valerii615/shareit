@@ -37,6 +37,7 @@ public class InMemoryUserStorage {
         log.info("Getting user id: {}", id);
         User user = users.get(id);
         if (user == null) {
+            log.error("NotFoundException: Пользователь с id: {} не найден", id);
             throw new NotFoundException("Пользователь с id: " + id + " не найден");
         }
         UserDto userDto = userRowMapper.toUserDto(user);
@@ -72,6 +73,7 @@ public class InMemoryUserStorage {
     public void validateUserEmail(String email) {
         for (User userOfMap : users.values()) {
             if (email.equals(userOfMap.getEmail())) {
+                log.error("ConflictException: Пользователь с таким email: {} уже существует ", email);
                 throw new ConflictException("Пользователь с таким email: " + email + " уже существует ");
             }
         }
