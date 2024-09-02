@@ -19,6 +19,7 @@ public class InMemoryItemStorage {
     public Item addItem(Long id, Item item) {
         log.info("Adding item {}", item);
         item.setId(++countId);
+        item.setOwner(id);
         items.put(item.getId(), item);
         log.info("Added item {}", item);
         return item;

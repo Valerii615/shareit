@@ -24,7 +24,6 @@ public class ItemService {
     public ItemDto addItem(Long id, ItemDto itemDto) {
         userService.getUser(id);
         Item item = itemMapper.toItem(itemDto);
-        item.setOwner(id);
         return itemMapper.toItemDto(inMemoryItemStorage.addItem(id, item));
     }
 
