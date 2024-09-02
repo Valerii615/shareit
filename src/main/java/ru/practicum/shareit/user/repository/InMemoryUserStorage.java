@@ -14,35 +14,29 @@ import java.util.Map;
 @Slf4j
 @Repository
 public class InMemoryUserStorage {
-    private final UserMapper userRowMapper = new UserMapper();
+    private final UserMapper userMapper = new UserMapper();
 
     private final Map<Long, User> users = new HashMap<>();
     private Long countId = 0L;
 
-    public UserDto addUser(UserDto userDto) {
-        log.info("Adding new user: {}", userDto);
-        validateUserEmail(userDto.getEmail());
-        User user = User.builder()
-                .id(++countId)
-                .name(userDto.getName())
-                .email(userDto.getEmail())
-                .build();
+    public User addUser(User user) {
+        log.info("Adding new user: {}", user);
+        validateUserEmail(user.getEmail());
+        user.setId(++countId);
         users.put(user.getId(), user);
-        UserDto userDto1 = userRowMapper.toUserDto(users.get(user.getId()));
-        log.info("Added user: {}", userDto1);
-        return userDto1;
+        log.info("Added user: {}", user);
+        return user;
     }
 
-    public UserDto getUser(Long id) {
+    public User getUser(Long id) {
         log.info("Getting user id: {}", id);
         User user = users.get(id);
         if (user == null) {
             log.error("NotFoundException: Пользователь с id: {} не найден", id);
             throw new NotFoundException("Пользователь с id: " + id + " не найден");
         }
-        UserDto userDto = userRowMapper.toUserDto(user);
-        log.info("Found user: {}", userDto);
-        return userDto;
+        log.info("Found user: {}", user);
+        return user;
     }
 
     public void deleteUser(Long id) {
@@ -52,22 +46,19 @@ public class InMemoryUserStorage {
         log.info("Deleted user id: {}", id);
     }
 
-    public UserDto updateUser(Long id, UserDto userDto) {
-        log.info("Updating user id: {}, user: {}", id, userDto.toString());
-        getUser(id);
-        User user = users.get(id);
-        user.setId(id);
-        if (userDto.getName() != null) {
-            user.setName(userDto.getName());
+    public User updateUser(Long id, User newUser) {
+        log.info("Updating user id: {}, user: {}", id, newUser.toString());
+        User user = getUser(id);
+        if (newUser.getName() != null) {
+            user.setName(newUser.getName());
         }
-        if (userDto.getEmail() != null) {
-            validateUserEmail(userDto.getEmail());
-            user.setEmail(userDto.getEmail());
+        if (newUser.getEmail() != null) {
+            validateUserEmail(newUser.getEmail());
+            user.setEmail(newUser.getEmail());
         }
         users.put(id, user);
-        UserDto userDto1 = userRowMapper.toUserDto(users.get(id));
-        log.info("Updated user: {}", userDto1);
-        return userDto1;
+        log.info("Updated user: {}", user);
+        return user;
     }
 
     public void validateUserEmail(String email) {

@@ -2,22 +2,27 @@ package ru.practicum.shareit.user.service;
 
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mappers.UserMapper;
+import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.InMemoryUserStorage;
 
 @Service
 public class UserService {
     private final InMemoryUserStorage inMemoryUserStorage;
+    private final UserMapper userMapper;
 
-    public UserService(InMemoryUserStorage inMemoryUserStorage) {
+    public UserService(InMemoryUserStorage inMemoryUserStorage, UserMapper userMapper) {
         this.inMemoryUserStorage = inMemoryUserStorage;
+        this.userMapper = userMapper;
     }
 
     public UserDto addUser(UserDto userDto) {
-        return inMemoryUserStorage.addUser(userDto);
+        User user = userMapper.toUser(userDto);
+        return userMapper.toUserDto(inMemoryUserStorage.addUser(user));
     }
 
     public UserDto getUser(Long id) {
-        return inMemoryUserStorage.getUser(id);
+        return userMapper.toUserDto(inMemoryUserStorage.getUser(id));
     }
 
     public void deleteUser(Long id) {
@@ -25,6 +30,7 @@ public class UserService {
     }
 
     public UserDto updateUser(Long id, UserDto userDto) {
-        return inMemoryUserStorage.updateUser(id, userDto);
+        User user = userMapper.toUser(userDto);
+        return userMapper.toUserDto(inMemoryUserStorage.updateUser(id, user));
     }
 }
