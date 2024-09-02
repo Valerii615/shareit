@@ -3,8 +3,6 @@ package ru.practicum.shareit.item.repository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.mappers.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.ArrayList;
@@ -15,84 +13,63 @@ import java.util.Map;
 @Slf4j
 @Repository
 public class InMemoryItemStorage {
-    private final ItemMapper itemRowMapper = new ItemMapper();
-
     private final Map<Long, Item> items = new HashMap<>();
     private Long countId = 0L;
 
-    public ItemDto addItem(Long id, ItemDto itemDto) {
-        log.info("Adding item {}", itemDto);
-        Item item = Item.builder()
-                .id(++countId)
-                .name(itemDto.getName())
-                .description(itemDto.getDescription())
-                .available(itemDto.getAvailable())
-                .owner(id)
-                .request(itemDto.getId())
-                .build();
+    public Item addItem(Long id, Item item) {
+        log.info("Adding item {}", item);
+        item.setId(++countId);
         items.put(item.getId(), item);
-        ItemDto itemDto1 = itemRowMapper.toItemDto(items.get(item.getId()));
-        log.info("Added item {}", itemDto1);
-        return itemDto1;
+        log.info("Added item {}", item);
+        return item;
     }
 
-    public ItemDto getItem(Long id) {
+    public Item getItem(Long id) {
         log.info("Getting item {}", id);
-        ItemDto itemDto = itemRowMapper.toItemDto(items.get(id));
-        if (itemDto == null) {
+        Item item = items.get(id);
+        if (item == null) {
             log.error("NotFoundException: Вещь с id: {} не найдена", id);
             throw new NotFoundException("Вещь с id: " + id + " не найдена");
         }
-        log.info("Found item {}", itemDto);
-        return itemDto;
+        log.info("Found item {}", item);
+        return item;
     }
 
-    public ItemDto updateItem(Long userId, Long id, ItemDto itemDto) {
-        log.info("Updating userId: {}, item: {}", userId, itemDto);
+    public Item updateItem(Long userId, Long id, Item newItem) {
+        log.info("Updating userId: {}, item: {}", userId, newItem);
         Item item = items.get(id);
         if (item.getOwner().equals(userId)) {
-            if (itemDto.getName() != null) {
-                item.setName(itemDto.getName());
-            }
-            if (itemDto.getDescription() != null) {
-                item.setDescription(itemDto.getDescription());
-            }
-            if (itemDto.getAvailable() != null) {
-                item.setAvailable(itemDto.getAvailable());
-            }
+            if (newItem.getName() != null) {item.setName(newItem.getName());}
+            if (newItem.getDescription() != null) {item.setDescription(newItem.getDescription());}
+            if (newItem.getAvailable() != null) {item.setAvailable(newItem.getAvailable());}
         }
         items.put(id, item);
-        ItemDto itemDto1 = itemRowMapper.toItemDto(items.get(id));
-        log.info("Updated item {}", itemDto1);
-        return itemDto1;
+        log.info("Updated item {}", item);
+        return item;
     }
 
-    public List<ItemDto> getAllItemsOfUser(Long userId) {
+    public List<Item> getAllItemsOfUser(Long userId) {
         log.info("Getting all items of user {}", userId);
-        List<Item> itemList = new ArrayList<>(items.values());
-        List<ItemDto> itemDtoList = itemList.stream()
+        List<Item> itemList = new ArrayList<>(items.values()).stream()
                 .filter(item -> item.getOwner().equals(userId))
-                .map(item -> itemRowMapper.toItemDto(items.get(item.getId())))
                 .toList();
-        log.info("Found {} items of user", itemDtoList.size());
-        return itemDtoList;
+        log.info("Found {} items of user", itemList.size());
+        return itemList;
     }
 
-    public List<ItemDto> searchItemsForRental(String text) {
+    public List<Item> searchItemsForRental(String text) {
         log.info("Searching for items for {}", text);
         if (text == null || text.isEmpty()) {
             log.info("Found 0 items for rental");
             return new ArrayList<>();
         } else {
-            List<Item> itemList = new ArrayList<>(items.values());
-            List<ItemDto> itemDtoList = itemList.stream()
+            List<Item> itemList = new ArrayList<>(items.values()).stream()
                     .filter(Item::getAvailable)
                     .filter(item -> item.getName().toLowerCase().contains(text.toLowerCase()) ||
                             item.getDescription().toLowerCase().contains(text.toLowerCase()))
-                    .map(item -> itemRowMapper.toItemDto(items.get(item.getId())))
                     .toList();
-            log.info("Found {} items for rental", itemDtoList.size());
-            return itemDtoList;
+            log.info("Found {} items for rental", itemList.size());
+            return itemList;
         }
     }
 }
