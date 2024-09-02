@@ -4,8 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mappers.UserMapper;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.HashMap;
@@ -14,8 +12,6 @@ import java.util.Map;
 @Slf4j
 @Repository
 public class InMemoryUserStorage {
-    private final UserMapper userMapper = new UserMapper();
-
     private final Map<Long, User> users = new HashMap<>();
     private Long countId = 0L;
 
