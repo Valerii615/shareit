@@ -15,4 +15,14 @@ public class ItemMapper {
                 .request(item.getRequest())
                 .build();
     }
+
+    public Item toItem(ItemDto itemDto) {
+        return Item.builder()
+                .id(itemDto.getId())
+                .name(itemDto.getName())
+                .description(itemDto.getDescription())
+                .available(itemDto.getAvailable())
+                .request(itemDto.getRequest())
+                .build();
+    }
 }
