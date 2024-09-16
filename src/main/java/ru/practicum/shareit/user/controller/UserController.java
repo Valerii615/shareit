@@ -16,17 +16,17 @@ public class UserController {
 
     @PostMapping
     public UserDto addUser(@Valid @RequestBody UserDto userDto) {
-        return userService.addUser(userDto);
+        return userService.createUser(userDto);
     }
 
     @GetMapping("/{id}")
     public UserDto getUser(@PathVariable Long id) {
-        return userService.getUser(id);
+        return userService.findUserById(id);
     }
 
     @DeleteMapping("/{id}")
     public void deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+        userService.deleteUserById(id);
     }
 
     @PatchMapping("/{id}")
