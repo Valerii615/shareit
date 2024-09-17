@@ -3,10 +3,8 @@ package ru.practicum.shareit.booking.mappers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.dto.BookingDtoRequest;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.mappers.ItemMapper;
-import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.mappers.UserMapper;
 
 @Component
