@@ -3,16 +3,16 @@ package ru.practicum.shareit.item.controller;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.item.service.ItemServiceImpl;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/items")
 public class ItemController {
-    private final ItemService itemService;
+    private final ItemServiceImpl itemService;
 
-    public ItemController(ItemService itemService) {
+    public ItemController(ItemServiceImpl itemService) {
         this.itemService = itemService;
     }
 
@@ -23,7 +23,7 @@ public class ItemController {
 
     @GetMapping("/{id}")
     public ItemDto getItem(@PathVariable Long id) {
-        return itemService.findItemById(id);
+        return itemService.findItemDtoById(id);
     }
 
     @PatchMapping("/{id}")
