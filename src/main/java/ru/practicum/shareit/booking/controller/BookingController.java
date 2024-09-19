@@ -17,7 +17,8 @@ public class BookingController {
     private final BookingService bookingServiceImpl;
 
     @PostMapping
-    public BookingDto addBooking(@RequestHeader("X-Sharer-User-Id") Long userId, @Valid @RequestBody BookingDtoRequest bookingDtoRequest) {
+    public BookingDto addBooking(@RequestHeader("X-Sharer-User-Id") Long userId,
+                                 @Valid @RequestBody BookingDtoRequest bookingDtoRequest) {
         return bookingServiceImpl.createBooking(userId, bookingDtoRequest);
     }
 
@@ -35,7 +36,7 @@ public class BookingController {
 
     @GetMapping
     public List<BookingDto> getAllBookingsFromUser(@RequestHeader("X-Sharer-User-Id") Long userId,
-                                                 @RequestParam(value = "state", defaultValue = "ALL") Status state) {
+                                                   @RequestParam(value = "state", defaultValue = "ALL") Status state) {
         return bookingServiceImpl.getAllBookingsFromUser(userId, state);
     }
 
