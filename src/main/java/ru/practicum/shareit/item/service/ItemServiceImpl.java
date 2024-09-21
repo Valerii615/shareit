@@ -8,6 +8,7 @@ import ru.practicum.shareit.booking.mappers.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.repository.BookingDbStorage;
 import ru.practicum.shareit.exception.BadRequest;
+import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CommentText;
@@ -19,7 +20,6 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentDbStorage;
 import ru.practicum.shareit.item.repository.ItemDbStorage;
-import ru.practicum.shareit.user.mappers.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
@@ -38,61 +38,36 @@ public class ItemServiceImpl implements ItemService {
     private final ItemDbStorage itemDbStorage;
     private final UserServiceImpl userService;
     private final ItemMapper itemMapper;
-    private final UserMapper userMapper;
     private final BookingMapper bookingMapper;
     private final CommentDbStorage commentDbStorage;
     private final CommentMapper commentMapper;
 
     @Override
     @Transactional
-    public ItemDto createItem(Long id, ItemDto itemDto) {
+    public Item createItem(Long id, ItemDto itemDto) {
         log.info("Creating new item: {}", itemDto);
-        User user = userMapper.toUser(userService.findUserById(id));
-        user.setId(id);
+        User user = userService.findUserById(id);
         Item item = itemMapper.toItem(itemDto);
         item.setOwner(user);
-        ItemDto itemDto1 = itemMapper.toItemDto(itemDbStorage.save(item));
-        log.info("Item created: {}", itemDto1);
-        return itemDto1;
-    }
-
-    @Override
-    public ItemDto findItemDtoById(Long id) {
-        log.info("Finding itemDto by id: {}", id);
-        ItemDto itemDto = itemMapper.toItemDto(itemDbStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Item with id: " + id + " not found")));
-        log.info("ItemDto find: {}", itemDto);
-        return itemDto;
+        Item createdItem = itemDbStorage.save(item);
+        log.info("Item created: {}", createdItem);
+        return createdItem;
     }
 
     @Override
     public ItemDtoTime findItemDtoTimeById(Long id) {
         log.info("Finding itemDtoTime by id: {}", id);
-        ItemDtoTime itemDtoTime = itemMapper.toItemDtoTime(itemDbStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Item with id: " + id + " not found")));
-        Booking[] bookings = getBeforeAndAfterBooking(id);
-        if (bookings[0] != null) {
-            itemDtoTime.setLastBooking(bookingMapper.toBookingDto(bookings[0]));
-        } else {
-            itemDtoTime.setLastBooking(null);
-        }
-        if (bookings[1] != null) {
-            itemDtoTime.setNextBooking(bookingMapper.toBookingDto(bookings[1]));
-        } else {
-            itemDtoTime.setNextBooking(null);
-        }
-        itemDtoTime.setComments(commentDbStorage.findByItemId(id).stream().map(commentMapper::toDto).toList());
-        log.info("ItemDtoTime find: {}", itemDtoTime);
-        return itemDtoTime;
-    }
-
-    public Booking[] getBeforeAndAfterBooking(Long itemId) {
+        ItemDtoTime itemDtoTime = itemMapper.toItemDtoTime(findItemById(id));
         ZoneId zoneId = ZoneId.systemDefault();
         LocalDateTime localDateTimeNow = LocalDateTime.ofInstant(Instant.now(), zoneId);
         Booking[] bookings = new Booking[2];
-        bookings[0] = bookingDbStorage.findByItemIdAndStartBeforeOrderByStart(itemId, localDateTimeNow.minusSeconds(30));
-        bookings[1] = bookingDbStorage.findByItemIdAndStartAfterOrderByStart(itemId, localDateTimeNow);
-        return bookings;
+        bookings[0] = bookingDbStorage.findByItemIdAndStartBeforeOrderByStart(id, localDateTimeNow.minusSeconds(30));
+        bookings[1] = bookingDbStorage.findByItemIdAndStartAfterOrderByStart(id, localDateTimeNow);
+        if (bookings[0] != null) itemDtoTime.setLastBooking(bookingMapper.toBookingDto(bookings[0]));
+        if (bookings[1] != null) itemDtoTime.setNextBooking(bookingMapper.toBookingDto(bookings[1]));
+        itemDtoTime.setComments(commentDbStorage.findByItemId(id).stream().map(commentMapper::toDto).toList());
+        log.info("ItemDtoTime find: {}", itemDtoTime);
+        return itemDtoTime;
     }
 
     @Override
@@ -100,7 +75,6 @@ public class ItemServiceImpl implements ItemService {
         log.info("Finding item by id: {}", id);
         Item item = itemDbStorage.findById(id)
                 .orElseThrow(() -> new NotFoundException("Item with id: " + id + " not found"));
-        item.setId(id);
         User owner = item.getOwner();
         item.setOwner(owner);
         log.info("Item find: {}", item);
@@ -109,16 +83,14 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public ItemDto updateItem(Long userId, Long id, ItemDto itemDto) {
+    public Item updateItem(Long userId, Long id, ItemDto itemDto) {
         log.info("Updating item: {}", itemDto);
         userService.findUserById(userId);
-        Item item = itemDbStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Item with id: " + id + " not found"));
-        User owner = item.getOwner();
+        Item item = findItemById(id);
         Item newItem = itemMapper.toItem(itemDto);
         newItem.setId(id);
-        newItem.setOwner(owner);
-        if (owner.getId().equals(userId)) {
+        newItem.setOwner(item.getOwner());
+        if (item.getOwner().getId().equals(userId)) {
             if (newItem.getName() == null) {
                 newItem.setName(item.getName());
             }
@@ -128,10 +100,12 @@ public class ItemServiceImpl implements ItemService {
             if (newItem.getAvailable() == null) {
                 newItem.setAvailable(item.getAvailable());
             }
+        } else {
+            throw new ConflictException("Only the owner of the item can edit it");
         }
-        ItemDto itemDto1 = itemMapper.toItemDto(itemDbStorage.save(newItem));
-        log.info("ItemDto update: {}", itemDto1);
-        return itemDto1;
+        Item itemUpdated = itemDbStorage.save(newItem);
+        log.info("ItemDto update: {}", itemUpdated);
+        return itemUpdated;
     }
 
     @Override
@@ -165,10 +139,10 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public CommentDto addComment(Long id, Long itemId, CommentText commentText) {
         log.info("Adding comment: {}", commentText);
-        User user = userMapper.toUser(userService.findUserById(id));
+        User user = userService.findUserById(id);
         Item item = findItemById(itemId);
-        List<Booking> booking = bookingDbStorage.findByItemIdAndBookerIdAndEndBefore(itemId, id, LocalDateTime.now());
-        if (booking.isEmpty()) {
+        List<Booking> bookings = bookingDbStorage.findByItemIdAndBookerIdAndEndBefore(itemId, id, LocalDateTime.now());
+        if (bookings.isEmpty()) {
             throw new BadRequest("The user with id:" + id + " did not rent an item with id:" + itemId);
         }
         Comment comment = Comment.builder()
