@@ -7,6 +7,8 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.item.mappers.ItemMapper;
 import ru.practicum.shareit.user.mappers.UserMapper;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class BookingMapper {
@@ -22,5 +24,9 @@ public class BookingMapper {
                 .booker(userMapper.toUserDto(booking.getBooker()))
                 .status(booking.getStatus())
                 .build();
+    }
+
+    public List<BookingDto> toBookingDtoList(List<Booking> bookings) {
+        return bookings.stream().map(this::toBookingDto).toList();
     }
 }
