@@ -20,40 +20,34 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto createUser(UserDto userDto) {
+    public User createUser(UserDto userDto) {
         log.info("Creating user: {}", userDto);
-        User user = userMapper.toUser(userDto);
-        UserDto userDto1 = userMapper.toUserDto(userDbStorage.save(user));
-        log.info("User created: {}", userDto1);
-        return userDto1;
+        User user = userDbStorage.save(userMapper.toUser(userDto));
+        log.info("User created: {}", user);
+        return user;
     }
 
     @Override
     @Transactional
-    public UserDto updateUser(Long id, UserDto userDto) {
+    public User updateUser(Long id, UserDto userDto) {
         log.info("Updating user: {}", userDto);
+        User user = findUserById(id);
         User newUser = userMapper.toUser(userDto);
-        User user = userDbStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("User with id: " + id + " not found"));
         newUser.setId(id);
-        if (newUser.getName() == null) {
-            newUser.setName(user.getName());
-        }
-        if (newUser.getEmail() == null) {
-            newUser.setEmail(user.getEmail());
-        }
-        UserDto userDto1 = userMapper.toUserDto(userDbStorage.save(newUser));
-        log.info("User updated: {}", userDto1);
-        return userDto1;
+        if (newUser.getName() == null) newUser.setName(user.getName());
+        if (newUser.getEmail() == null) newUser.setEmail(user.getEmail());
+        User updatedUser = userDbStorage.save(newUser);
+        log.info("User updated: {}", updatedUser);
+        return updatedUser;
     }
 
     @Override
-    public UserDto findUserById(Long id) {
+    public User findUserById(Long id) {
         log.info("Finding user by id: {}", id);
-        UserDto userDto = userMapper.toUserDto(userDbStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("User with id: " + id + " not found")));
-        log.info("User found: {}", userDto);
-        return userDto;
+        User user = userDbStorage.findById(id)
+                .orElseThrow(() -> new NotFoundException("User with id: " + id + " not found"));
+        log.info("User found: {}", user);
+        return user;
     }
 
     @Override
