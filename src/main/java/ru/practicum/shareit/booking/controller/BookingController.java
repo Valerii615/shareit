@@ -9,7 +9,6 @@ import ru.practicum.shareit.booking.dto.BookingDtoRequest;
 import ru.practicum.shareit.booking.mappers.BookingMapper;
 import ru.practicum.shareit.booking.model.RequestState;
 import ru.practicum.shareit.booking.model.Role;
-import ru.practicum.shareit.booking.model.Status;
 
 import java.util.List;
 
