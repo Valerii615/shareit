@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
         log.info("Updating user: {}", userDto);
         User newUser = userMapper.toUser(userDto);
         User user = userDbStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id: " + id + " не найден"));
+                .orElseThrow(() -> new NotFoundException("User with id: " + id + " not found"));
         newUser.setId(id);
         if (newUser.getName() == null) {
             newUser.setName(user.getName());
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
     public UserDto findUserById(Long id) {
         log.info("Finding user by id: {}", id);
         UserDto userDto = userMapper.toUserDto(userDbStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь с id: " + id + " не найден")));
+                .orElseThrow(() -> new NotFoundException("User with id: " + id + " not found")));
         log.info("User found: {}", userDto);
         return userDto;
     }

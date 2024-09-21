@@ -60,7 +60,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto findItemDtoById(Long id) {
         log.info("Finding itemDto by id: {}", id);
         ItemDto itemDto = itemMapper.toItemDto(itemDbStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Вещь с id: " + id + " не найдена")));
+                .orElseThrow(() -> new NotFoundException("Item with id: " + id + " not found")));
         log.info("ItemDto find: {}", itemDto);
         return itemDto;
     }
@@ -69,7 +69,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemDtoTime findItemDtoTimeById(Long id) {
         log.info("Finding itemDtoTime by id: {}", id);
         ItemDtoTime itemDtoTime = itemMapper.toItemDtoTime(itemDbStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Вещь с id: " + id + " не найдена")));
+                .orElseThrow(() -> new NotFoundException("Item with id: " + id + " not found")));
         Booking[] bookings = getBeforeAndAfterBooking(id);
         if (bookings[0] != null) {
             itemDtoTime.setLastBooking(bookingMapper.toBookingDto(bookings[0]));
@@ -99,7 +99,7 @@ public class ItemServiceImpl implements ItemService {
     public Item findItemById(Long id) {
         log.info("Finding item by id: {}", id);
         Item item = itemDbStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Вещь с id: " + id + " не найдена"));
+                .orElseThrow(() -> new NotFoundException("Item with id: " + id + " not found"));
         item.setId(id);
         User owner = item.getOwner();
         item.setOwner(owner);
@@ -113,7 +113,7 @@ public class ItemServiceImpl implements ItemService {
         log.info("Updating item: {}", itemDto);
         userService.findUserById(userId);
         Item item = itemDbStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Вещь с id: " + id + " не найдена"));
+                .orElseThrow(() -> new NotFoundException("Item with id: " + id + " not found"));
         User owner = item.getOwner();
         Item newItem = itemMapper.toItem(itemDto);
         newItem.setId(id);
@@ -169,7 +169,7 @@ public class ItemServiceImpl implements ItemService {
         Item item = findItemById(itemId);
         List<Booking> booking = bookingDbStorage.findByItemIdAndBookerIdAndEndBefore(itemId, id, LocalDateTime.now());
         if (booking.isEmpty()) {
-            throw new BadRequest("Пользователь с id:" + id + " не арендовал вещь с id:" + itemId);
+            throw new BadRequest("The user with id:" + id + " did not rent an item with id:" + itemId);
         }
         Comment comment = Comment.builder()
                 .text(commentText.getText())
