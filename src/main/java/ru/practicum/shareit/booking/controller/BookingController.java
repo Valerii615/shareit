@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.Service.BookingService;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
+import ru.practicum.shareit.booking.model.Role;
 import ru.practicum.shareit.booking.model.Status;
 
 import java.util.List;
@@ -37,12 +38,12 @@ public class BookingController {
     @GetMapping
     public List<BookingDto> getAllBookingsFromUser(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                    @RequestParam(value = "state", defaultValue = "ALL") Status state) {
-        return bookingServiceImpl.getAllBookingsFromUser(userId, state);
+        return bookingServiceImpl.getAllBookingsFromUser(userId, state, Role.USER);
     }
 
     @GetMapping("/owner")
     public List<BookingDto> getAllBookingFromOwner(@RequestHeader("X-Sharer-User-Id") Long userId,
                                                    @RequestParam(value = "state", defaultValue = "ALL") Status state) {
-        return bookingServiceImpl.getAllBookingFromOwner(userId, state);
+        return bookingServiceImpl.getAllBookingsFromUser(userId, state, Role.OWNER);
     }
 }
