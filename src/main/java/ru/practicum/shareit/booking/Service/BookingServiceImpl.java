@@ -8,9 +8,11 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoRequest;
 import ru.practicum.shareit.booking.mappers.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.Role;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingDbStorage;
 import ru.practicum.shareit.exception.BadRequest;
+import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.mappers.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
@@ -36,20 +38,20 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto createBooking(Long userId, BookingDtoRequest bookingDtoRequest) {
-        log.info("Create booking request");
+        log.info("Create booking");
         User user = userMapper.toUser(userService.findUserById(userId));
         Item item = itemMapper.toItem(itemService.findItemDtoById(bookingDtoRequest.getItemId()));
         if (!item.getAvailable()) {
-            log.error("Вещь не доступна для бронирования");
-            throw new BadRequest("Вещь не доступна для бронирования");
+            log.error("The item is not available for booking");
+            throw new BadRequest("The item is not available for booking");
         }
         if (bookingDtoRequest.getStart().equals(bookingDtoRequest.getEnd())) {
-            log.error("Время начала и окончания не могут быть равны");
-            throw new BadRequest("Время начала и окончания не могут быть равны");
+            log.error("The start and end times cannot be equal");
+            throw new BadRequest("The start and end times cannot be equal");
         }
         if (bookingDtoRequest.getEnd().isBefore(bookingDtoRequest.getStart())) {
-            log.error("Время окончания не может быть раньше времени начала");
-            throw new BadRequest("Время окончания не может быть раньше времени начала");
+            log.error("The end time cannot be earlier than the start time");
+            throw new BadRequest("The end time cannot be earlier than the start time");
         }
         Booking booking = Booking.builder()
                 .start(bookingDtoRequest.getStart())
@@ -59,7 +61,7 @@ public class BookingServiceImpl implements BookingService {
                 .status(Status.WAITING)
                 .build();
         BookingDto bookingDto = bookingMapper.toBookingDto(bookingDbStorage.save(booking));
-        log.info("Booking created");
+        log.info("Booking created {}", bookingDto);
         return bookingDto;
     }
 
@@ -67,12 +69,12 @@ public class BookingServiceImpl implements BookingService {
     public Booking getBooking(Long id) {
         log.info("Get booking");
         Booking booking = bookingDbStorage.findById(id)
-                .orElseThrow(() -> new NotFoundException("Бронироване с " + id + " не найдено"));
+                .orElseThrow(() -> new NotFoundException("Booking with " + id + " was not found"));
         Item item = booking.getItem();
         User booker = booking.getBooker();
         booking.setBooker(booker);
         booking.setItem(item);
-        log.info("Booking find");
+        log.info("Booking find {}", booking);
         return booking;
     }
 
@@ -88,8 +90,8 @@ public class BookingServiceImpl implements BookingService {
         }
         Booking booking = getBooking(bookingId);
         if (!booking.getItem().getOwner().getId().equals(user.getId())) {
-            log.error("Подтверждать бронирование может только владелец вещи");
-            throw new BadRequest("Подтверждать бронирование может только владелец вещи");
+            log.error("Only the owner of the item can confirm the reservation");
+            throw new BadRequest("Only the owner of the item can confirm the reservation");
         }
         if (approve) {
             booking.setStatus(Status.APPROVED);
@@ -97,61 +99,55 @@ public class BookingServiceImpl implements BookingService {
             booking.setStatus(Status.REJECTED);
         }
         BookingDto bookingDto = bookingMapper.toBookingDto(bookingDbStorage.save(booking));
-        log.info("Booking approved");
+        log.info("Booking approved {}", bookingDto);
         return bookingDto;
     }
 
     @Override
     public BookingDto getBookingDtoById(Long userId, Long bookingId) {
-        log.info("Get booking dto by id");
+        log.info("Get booking dto by id: {}", bookingId);
         User user = userMapper.toUser(userService.findUserById(userId));
         Booking booking = getBooking(bookingId);
         if (!booking.getItem().getOwner().getId().equals(user.getId())) {
             if (!booking.getBooker().getId().equals(user.getId())) {
-                log.error("Пользователь должен быть владельцем вещи или автором бронирования");
-                throw new BadRequest("Пользователь должен быть владельцем вещи или автором бронирования");
+                log.error("The user must be the owner of the item or the author of the reservation");
+                throw new BadRequest("The user must be the owner of the item or the author of the reservation");
             }
         }
         BookingDto bookingDto = bookingMapper.toBookingDto(booking);
-        log.info("Booking dto find");
+        log.info("Booking dto find {}", bookingDto);
         return bookingDto;
     }
 
     @Override
-    public List<BookingDto> getAllBookingsFromUser(Long userId, Status state) {
-        log.info("Get all bookings from user");
+    public List<BookingDto> getAllBookingsFromUser(Long userId, Status state, Role role) {
+        log.info("Get all bookings from {}", role);
+        List<BookingDto> bookingDtoList;
         userService.findUserById(userId);
-        if (state == Status.ALL) {
-            List<BookingDto> bookingDtoList = bookingDbStorage.findByBookerIdOrderByStart(userId).stream()
-                    .map(bookingMapper::toBookingDto)
-                    .toList();
-            log.info("All bookings from user");
+        if (role == Role.USER) {
+            if (state == Status.ALL) {
+                bookingDtoList = bookingMapper
+                        .toBookingDtoList(bookingDbStorage.findByBookerIdOrderByStart(userId));
+                log.info("All bookings from user, size: {}", bookingDtoList.size());
+            } else {
+                bookingDtoList = bookingMapper
+                        .toBookingDtoList(bookingDbStorage.findByBookerIdAndStatusOrderByStart(userId, state));
+                log.info("bookings from user, size: {}", bookingDtoList.size());
+            }
+            return bookingDtoList;
+        } else if (role == Role.OWNER) {
+            if (state == Status.ALL) {
+                bookingDtoList = bookingMapper
+                        .toBookingDtoList(bookingDbStorage.findByItemOwnerIdOrderByStart(userId));
+                log.info("All bookings from owner, size: {}", bookingDtoList.size());
+            } else {
+                bookingDtoList = bookingMapper
+                        .toBookingDtoList(bookingDbStorage.findByItemOwnerIdAndStatusOrderByStart(userId, state));
+                log.info("Bookings from owner, size: {}", bookingDtoList.size());
+            }
             return bookingDtoList;
         } else {
-            List<BookingDto> bookingDtoList = bookingDbStorage.findByBookerIdAndStatusOrderByStart(userId, state).stream()
-                    .map(bookingMapper::toBookingDto)
-                    .toList();
-            log.info("bookings from user");
-            return bookingDtoList;
-        }
-    }
-
-    @Override
-    public List<BookingDto> getAllBookingFromOwner(Long userId, Status state) {
-        log.info("Get all bookings from owner");
-        userService.findUserById(userId);
-        if (state == Status.ALL) {
-            List<BookingDto> bookingDtoList = bookingDbStorage.findByItemOwnerIdOrderByStart(userId).stream()
-                    .map(bookingMapper::toBookingDto)
-                    .toList();
-            log.info("All bookings from owner");
-            return bookingDtoList;
-        } else {
-            List<BookingDto> bookingDtoList = bookingDbStorage.findByItemOwnerIdAndStatusOrderByStart(userId, state).stream()
-                    .map(bookingMapper::toBookingDto)
-                    .toList();
-            log.info("bookings from owner");
-            return bookingDtoList;
+            throw new ConflictException("An unknown role was obtained");
         }
     }
 }
