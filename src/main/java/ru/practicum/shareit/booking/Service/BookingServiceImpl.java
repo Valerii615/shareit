@@ -131,7 +131,7 @@ public class BookingServiceImpl implements BookingService {
                         .findByBookerIdAndStartBeforeTimeAfterEnd(userId, LocalDateTime.now()));
                 case PAST -> bookingDtoList = bookingMapper.toBookingDtoList(bookingDbStorage
                         .findByBookerIdAndTimeAfterEnd(userId, LocalDateTime.now()));
-                case FUTURE ->bookingDtoList = bookingMapper.toBookingDtoList(bookingDbStorage
+                case FUTURE -> bookingDtoList = bookingMapper.toBookingDtoList(bookingDbStorage
                         .findByBookerIdAndStartBeforeTime(userId, LocalDateTime.now()));
                 case WAITING -> bookingDtoList = bookingMapper.toBookingDtoList(bookingDbStorage
                         .findByBookerIdAndStatusOrderByStart(userId, Status.WAITING));
