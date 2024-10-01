@@ -9,4 +9,6 @@ public interface ItemDbStorage extends JpaRepository<Item, Long> {
     List<Item> findItemByOwnerId(Long ownerId);
 
     List<Item> findItemByAvailableIsTrueAndNameContainsIgnoreCaseOrDescriptionContainsIgnoreCase(String nameText, String descriptionText);
+
+    List<Item> findByRequestId(Long requestId);
 }

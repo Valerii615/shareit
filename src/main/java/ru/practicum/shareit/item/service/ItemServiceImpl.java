@@ -20,6 +20,7 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentDbStorage;
 import ru.practicum.shareit.item.repository.ItemDbStorage;
+import ru.practicum.shareit.request.repository.RequestDbStorage;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
@@ -41,6 +42,7 @@ public class ItemServiceImpl implements ItemService {
     private final BookingMapper bookingMapper;
     private final CommentDbStorage commentDbStorage;
     private final CommentMapper commentMapper;
+    private final RequestDbStorage requestDbStorage;
 
     @Override
     @Transactional
@@ -49,6 +51,10 @@ public class ItemServiceImpl implements ItemService {
         User user = userService.findUserById(id);
         Item item = itemMapper.toItem(itemDto);
         item.setOwner(user);
+        if (itemDto.getRequestId() != null) {
+            item.setRequest(requestDbStorage.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException("Request with id:" + itemDto.getRequestId() + " not found")));
+        }
         Item createdItem = itemDbStorage.save(item);
         log.info("Item created: {}", createdItem);
         return createdItem;
@@ -79,6 +85,13 @@ public class ItemServiceImpl implements ItemService {
         item.setOwner(owner);
         log.info("Item find: {}", item);
         return item;
+    }
+
+    public List<Item> findItemByRequestId(Long requestId) {
+        log.info("Finding item by request id: {}", requestId);
+        List<Item> itemList = itemDbStorage.findByRequestId(requestId);
+        log.info("Found {} items", itemList.size());
+        return itemList;
     }
 
     @Override
