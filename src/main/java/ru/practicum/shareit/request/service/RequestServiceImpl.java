@@ -59,7 +59,7 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public RequestDtoWithItem getRequestDtoWithItem(Long userId, Long requestId) {
         log.info("Retrieving request with id {} and user {}", requestId, userId);
-        User user = userService.findUserById(userId);
+        userService.findUserById(userId);
         Request request = getRequestById(requestId);
         List<ItemDtoRequest> itemDtoRequestList = itemServiceImpl.findItemByRequestId(requestId).stream()
                 .map(itemMapper::toItemDtoRequest)
@@ -72,7 +72,7 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public List<RequestDtoWithItem> getRequestsByUserId(Long userId) {
         log.info("Retrieving requests by user {}", userId);
-        User user = userService.findUserById(userId);
+        userService.findUserById(userId);
         List<Request> requestList = requestDbStorage.findAllByRequesterIdOrderByCreatedDesc(userId);
         return requestList.stream()
                 .map(request -> getRequestDtoWithItem(userId, request.getId()))
@@ -81,7 +81,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public List<RequestDto> getAllRequests(Long userId) {
-        User user = userService.findUserById(userId);
+        userService.findUserById(userId);
         return requestDbStorage.findAllByRequesterIdNot(userId).stream()
                 .map(requestMapper::toDto)
                 .toList();
