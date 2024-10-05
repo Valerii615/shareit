@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.repository.UserDbStorage;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -22,7 +23,13 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User createUser(UserDto userDto) {
         log.info("Creating user: {}", userDto);
-        User user = userDbStorage.save(userMapper.toUser(userDto));
+        User user;
+        try {
+            user = userDbStorage.save(userMapper.toUser(userDto));
+        } catch (Exception e) {
+            log.error("Duplicate key value (email) violates the uniqueness constraint (Creating)");
+            throw new ConflictException(e.getMessage());
+        }
         log.info("User created: {}", user);
         return user;
     }
@@ -36,7 +43,13 @@ public class UserServiceImpl implements UserService {
         newUser.setId(id);
         if (newUser.getName() == null) newUser.setName(user.getName());
         if (newUser.getEmail() == null) newUser.setEmail(user.getEmail());
-        User updatedUser = userDbStorage.save(newUser);
+        User updatedUser;
+        try {
+            updatedUser = userDbStorage.save(newUser);
+        } catch (Exception e) {
+            log.error("Duplicate key value (email) violates the uniqueness constraint (Updating)");
+            throw new ConflictException(e.getMessage());
+        }
         log.info("User updated: {}", updatedUser);
         return updatedUser;
     }
@@ -54,6 +67,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void deleteUserById(Long id) {
         log.info("Deleting user by id: {}", id);
+        findUserById(id);
         userDbStorage.deleteById(id);
         log.info("User deleted: {}", id);
     }
