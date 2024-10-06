@@ -36,7 +36,7 @@ public class ItemClient extends BaseClient {
     }
 
     public ResponseEntity<Object> updateItem(Long userId, Long id, ItemDto itemDto) {
-        return patch("/" + id ,userId, itemDto);
+        return patch("/" + id, userId, itemDto);
     }
 
     public ResponseEntity<Object> getAllItemsOfUser(Long userId) {
