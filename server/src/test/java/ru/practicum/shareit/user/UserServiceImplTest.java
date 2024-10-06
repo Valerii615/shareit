@@ -13,10 +13,10 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserServiceImpl;
 
-import static org.hamcrest.MatcherAssert.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Transactional
 @SpringBootTest
@@ -46,8 +46,8 @@ public class UserServiceImplTest {
                             "(EMAIL NULLS FIRST) VALUES ( /* 1 */ 'www1@mail.com' )\"; SQL statement:\n" +
                             "insert into users (email,name,user_id) values (?,?,default) [23505-224]] [insert into " +
                             "users (email,name,user_id) values (?,?,default)]; SQL [insert into users" +
-                            " (email,name,user_id) values (?,?,default)]; constraint [PUBLIC.UQ_USER_EMAIL_INDEX_4]"
-                    , e.getMessage(), "Получено неверное исключение");
+                            " (email,name,user_id) values (?,?,default)]; constraint [PUBLIC.UQ_USER_EMAIL_INDEX_4]",
+                    e.getMessage(), "Получено неверное исключение");
         }
 
         TypedQuery<User> query = em.createQuery("select u from User u where u.email = :email", User.class);
