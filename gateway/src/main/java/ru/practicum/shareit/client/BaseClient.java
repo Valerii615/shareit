@@ -67,6 +67,10 @@ public class BaseClient {
         return makeAndSendRequest(HttpMethod.PATCH, path, userId, parameters, body);
     }
 
+    protected <T> ResponseEntity<Object> patch(String path, Long userId, @Nullable Map<String, Object> parameters) {
+        return makeAndSendRequest(HttpMethod.PATCH, path, userId, parameters);
+    }
+
     protected ResponseEntity<Object> delete(String path) {
         return delete(path, null, null);
     }
@@ -81,6 +85,22 @@ public class BaseClient {
 
     private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, Long userId, @Nullable Map<String, Object> parameters, @Nullable T body) {
         HttpEntity<T> requestEntity = new HttpEntity<>(body, defaultHeaders(userId));
+
+        ResponseEntity<Object> shareitServerResponse;
+        try {
+            if (parameters != null) {
+                shareitServerResponse = rest.exchange(path, method, requestEntity, Object.class, parameters);
+            } else {
+                shareitServerResponse = rest.exchange(path, method, requestEntity, Object.class);
+            }
+        } catch (HttpStatusCodeException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
+        }
+        return prepareGatewayResponse(shareitServerResponse);
+    }
+
+    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, Long userId, @Nullable Map<String, Object> parameters) {
+        HttpEntity<T> requestEntity = new HttpEntity<>(defaultHeaders(userId));
 
         ResponseEntity<Object> shareitServerResponse;
         try {
